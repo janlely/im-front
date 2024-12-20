@@ -1,99 +1,36 @@
 "use client"
-import React from 'react';
+import React, { Suspense } from 'react';
 import Grid from '@mui/material/Grid2';
 import { List, ListItem, Button, Drawer, Stack, Box, Typography, Paper, Avatar, TextField, CircularProgress, Modal } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
 import OutputIcon from '@mui/icons-material/Output';
 import PhotoIcon from '@mui/icons-material/Photo';
-import {MessageDivData, MessageType} from "@/types/message"
+import {Memeber, MessageDivData, MessageType} from "@/types/message"
 import { styled } from '@mui/material/styles';
 import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
+import ReplayIcon from '@mui/icons-material/Replay';
+import Image from 'next/image'
 import axios from 'axios';
 import { generateThumbnail, uploadImages } from '@/utils';
-import ReplayIcon from '@mui/icons-material/Replay';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 
-export default function Chat() {
+function Chat() {
   const [imgOpen, setImgOpen] = React.useState(false);
-  const [members, setMembers] = React.useState<any[]>([]);
+  const [members, setMembers] = React.useState<Memeber[]>([]);
   const [inputText, setInputText] = React.useState("");
   const connectionInited = React.useRef(false)
   const msgBodyRef = React.useRef<HTMLDivElement>(null)
-  const msgEditorRef = React.useRef<HTMLInputElement>(null)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [scrollToBottomNeeded, setScrollToBottomNeeded] = React.useState(false);
   const messagesRef = React.useRef<MessageDivData[]>([])
-  const [messages, setMessages] = React.useState<MessageDivData[]>([
-  //   {
-  //   message: {
-  //     messageId: 0,
-  //     type: 0,
-  //     data: "今天天气怎么样",
-  //     sender: "me"
-  //   },
-  //   send: true,
-  //   success: true,
-  //   uuid: 0,
-  //   failed: false
-  // },{
-  //   message: {
-  //     messageId: 1,
-  //     type: 0,
-  //     data: "上午下了一会儿雨，下午天气又放晴了",
-  //     sender: "jacobo"
-  //   },
-  //   send: false,
-  //   success: true,
-  //   uuid: 1,
-  //   failed: false
-  // },{
-  //   message: {
-  //     messageId: 2,
-  //     type: 0,
-  //     data: "哦，难怪我出门看到地上都是湿的，我上午睡了一上午，下午出门怎么就这样了",
-  //     sender: "jnabo"
-  //   },
-  //   send: false,
-  //   success: true,
-  //   uuid: 2,
-  //   failed: false
-  // },{
-  //   message: {
-  //     messageId: 3,
-  //     type: 0,
-  //     data: "哦，难怪我出门看到地上都是湿的，我上午睡了一上午，下午出门怎么就这样了",
-  //     sender: "jnabo"
-  //   },
-  //   send: false,
-  //   success: true,
-  //   uuid: 3,
-  //   failed: false
-  // },{
-  //   message: {
-  //     messageId: 4,
-  //     type: 0,
-  //     data: "哦，难怪我出门看到地上都是湿的，我上午睡了一上午，下午出门怎么就这样了",
-  //     sender: "jnabo"
-  //   },
-  //   send: false,
-  //   success: true,
-  //   uuid: 4,
-  //   failed: false
-  // },{
-  //   message: {
-  //     messageId: 5,
-  //     type: 0,
-  //     data: "哦，难怪我出门看到地上都是湿的，我上午睡了一上午，下午出门怎么就这样了",
-  //     sender: "jnabo"
-  //   },
-  //   send: false,
-  //   success: true,
-  //   uuid: 5,
-  //   failed: false
-  // }
-]);
+  const [messages, setMessages] = React.useState<MessageDivData[]>([]);
   const [memberListOpen, setMemberListOpen] = React.useState(false);
-  const roomId = window.location.search.substring(1)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const roomId = searchParams.get("roomId")
+
+  
 
   React.useEffect(() => {
     messagesRef.current = messages
@@ -102,7 +39,7 @@ export default function Chat() {
         scrollToBottom(msgBodyRef.current!)
     }
     console.log(`message size: ${messages.length}, div size: ${msgBodyRef.current?.childElementCount}`)
-  }, [messages])
+  }, [messages, scrollToBottomNeeded])
 
   const toggleDrawer = () =>  {
     setMemberListOpen(!memberListOpen);
@@ -138,17 +75,17 @@ export default function Chat() {
         setMembers(uniqueByProperty(res.data, item => item.username))
     })
   }
-  const uniqueByProperty = (items: any[], propGetter: (_: any) => any): any[] => {
-      const seen = new Set();
-      return items.filter(item => {
-          const propValue = propGetter(item);
-          if (seen.has(propValue)) {
-              return false;
-          } else {
-              seen.add(propValue);
-              return true;
-          }
-      });
+  function uniqueByProperty<T, K extends keyof T>(items: T[], propGetter: (item: T) => T[K]): T[] {
+    const seen = new Set<T[K]>();
+    return items.filter(item => {
+      const propValue = propGetter(item);
+      if (seen.has(propValue)) {
+        return false;
+      } else {
+        seen.add(propValue);
+        return true;
+      }
+    });
   }
   const connect = () => {
     const wsClient = new WebSocket(`/chat-ws?${roomId}`);
@@ -161,7 +98,9 @@ export default function Chat() {
     wsClient.onclose = (e) => {
       console.log(`WebSocket disconnected, code: ${e.code}`);
       if (e.code === 3401) {
-        window.location.href = "/Login";
+        if (typeof window != undefined) {
+          router.push("/login")
+        }
       } else {
         setTimeout(connect, 1000);
       }
@@ -261,8 +200,10 @@ export default function Chat() {
     }).then(res => {
         console.log(`response status: ${res.status}`)
         if (res.status === 401) {
+          if (typeof window !== undefined) {
             window.location.href = "/Login"
             return
+          }
         }
         setMessages(prevMessages =>
             uniqueByProperty(prevMessages.map(msg =>
@@ -313,7 +254,7 @@ export default function Chat() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    let file = e.target.files![0]; // 获取File对象
+    const file = e.target.files![0]; // 获取File对象
     if (file) {
       sendImgMessage(file)
     }
@@ -352,9 +293,9 @@ export default function Chat() {
                   {msg.message.type === MessageType.TEXT ?
                     <Typography noWrap>{msg.message.data}</Typography> :
                     <Box>
-                      <img src={JSON.parse(msg.message.data).thumbnail} onClick={() => setImgOpen(!imgOpen)}/>
+                      <Image alt='' src={JSON.parse(msg.message.data).thumbnail} onClick={() => setImgOpen(!imgOpen)}/>
                       <Modal open={imgOpen} onClose={() => setImgOpen(!imgOpen)}>
-                        <img src={JSON.parse(msg.message.data).url} onClick={() => setImgOpen(!imgOpen)} />
+                        <Image alt='' src={JSON.parse(msg.message.data).url} onClick={() => setImgOpen(!imgOpen)} />
                       </Modal>
                     </Box>}
                   <Avatar>{msg.message.sender.substring(0, 3)}</Avatar>
@@ -362,16 +303,16 @@ export default function Chat() {
               </Item>
             </Box>
             :
-            <Box sx={{ display: "flex", justifyContent: 'flex-start', width: "100vw", pr: '50px' }}>
+            <Box key={msg.message.messageId} sx={{ display: "flex", justifyContent: 'flex-start', width: "100vw", pr: '50px' }}>
               <Item sx={{ my: 1, p: 2 }}>
                 <Stack spacing={2} direction="row" sx={{ alignItems: 'center' }}>
                   <Avatar>{msg.message.sender.substring(0, 3)}</Avatar>
                   {msg.message.type === MessageType.TEXT ?
                     <Typography noWrap>{msg.message.data}</Typography> :
                     <Box>
-                      <img src={JSON.parse(msg.message.data).thumbnail} onClick={() => setImgOpen(!imgOpen)}/>
+                      <Image alt='' src={JSON.parse(msg.message.data).thumbnail} onClick={() => setImgOpen(!imgOpen)}/>
                       <Modal open={imgOpen} onClose={() => setImgOpen(!imgOpen)}>
-                        <img src={JSON.parse(msg.message.data).url} onClick={() => setImgOpen(!imgOpen)} />
+                        <Image alt='' src={JSON.parse(msg.message.data).url} onClick={() => setImgOpen(!imgOpen)} />
                       </Modal>
                     </Box>}
                 </Stack>
@@ -406,7 +347,13 @@ export default function Chat() {
     </Stack>
   );
 }
-function uploadImgThenSend(blob: Blob, thumbnailBlob: Blob) {
-  throw new Error('Function not implemented.');
-}
 
+
+
+export default function ChatPageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Chat/>
+    </Suspense>
+  );
+}

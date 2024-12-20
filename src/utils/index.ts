@@ -55,17 +55,17 @@ export function generateThumbnail(blob: Blob, maxWidth: number, maxHeight: numbe
     };
 
     // 如果图像加载失败，捕获错误
-    img.onerror = (error) => {
+    img.onerror = () => {
       reject(new Error('图像加载失败'));
     };
 
   });
 }
-export async function uploadImages(thumbnailBlob: any, blob: any): Promise<string[]> {
+export async function uploadImages(thumbnailBlob: Blob, blob: Blob): Promise<string[]> {
   return Promise.all([toTmpfile(thumbnailBlob), toFarsee(blob)])
 }
 
-export async function toFarsee(blob: any): Promise<string> {
+export async function toFarsee(blob: Blob): Promise<string> {
 
   const formData = new FormData();
   formData.append('file', blob, 'image.png'); // 第三个参数是文件名，根据实际情况修改
@@ -81,7 +81,7 @@ export async function toFarsee(blob: any): Promise<string> {
   }
 }
 
-export async function to0x0(blob: any): Promise<string> {
+export async function to0x0(blob: Blob): Promise<string> {
   const formData = new FormData();
   formData.append('file', blob, 'image.png'); // 第三个参数是文件名，根据实际情况修改
   const response = await axios.post('https://0x0.st', formData, {
@@ -97,7 +97,7 @@ export async function to0x0(blob: any): Promise<string> {
 }
 
 
-export async function toTmpfile(blob: any): Promise<string> {
+export async function toTmpfile(blob: Blob): Promise<string> {
   const formData = new FormData();
   formData.append('file', blob, 'image.png'); // 第三个参数是文件名，根据实际情况修改
   const response = await axios.post('https://tmpfiles.org/api/v1/upload', formData, {

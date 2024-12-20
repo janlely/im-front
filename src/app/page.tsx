@@ -4,12 +4,14 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
 import React from 'react';
+import Link from 'next/link';
+
 
 export default function Home() {
-  const [roomId, setRoomId] = React.useState('');
+  const [roomId, setRoomId] = React.useState("");
   React.useEffect(() => {
     setRoomId('123456')
-  })
+  }, [roomId])
   return (
     <Box sx={{
       width: '100vw',
@@ -27,7 +29,9 @@ export default function Home() {
           label="RoomId"
           size='small'
         />
-        <Button variant="contained" onClick={() => {window.location.href = `/chat?${roomId}`}}>Goto</Button>
+        <Button variant="contained">
+          <Link href={`/chat?roomId=${roomId}`}>Goto</Link>
+        </Button>
       </Stack>
     </Box>
   );

@@ -1,26 +1,34 @@
+"use client"
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import React from 'react';
 
 export default function Home() {
-  const userRef = React.useRef<HTMLInputElement>(null);
-  const tokenRef = React.useRef<HTMLInputElement>(null);
-  const roomIdRef = React.useRef<HTMLInputElement>(null);
+  const [username, setUsername] = React.useState("");
+  const [optToken, setOptToken] = React.useState("");
+  const [roomId, setRoomId] = React.useState("");
+  const router = useRouter();
+  React.useEffect(() => {
+    setRoomId('123456')
+  }, [])
 
   const handleLogin = () => {
     axios.post("/api/login", {
-        username: userRef.current?.value,
+        username: username,
         // password: passwdRef.current?.value,
-        roomId: roomIdRef.current?.value,
-        token: tokenRef.current?.value
+        roomId: roomId,
+        token: optToken 
     }).then(res => {
         if (res.status !== 200) {
             alert(`登录失败: ${res.status}`)
         } else {
-            window.location.href = `/Chat?${roomIdRef.current?.value}`
+            if (typeof window != 'undefined') {
+                router.push(`/Chat?roomId=${roomId}`)
+            }
         }
     }).catch(err => {
         alert(`${err.response.data}`)
@@ -37,26 +45,28 @@ export default function Home() {
       <Stack spacing={2}>
         <TextField
           required
-          ref={userRef}
+          value={username}
           id="outlined-required"
           label="username"
+          onChange={(e) => setUsername(e.target.value)}
           size='small'
         />
         <TextField
           required
-          ref={tokenRef}
+          value={optToken}
           id="outlined-password-input"
           label="OptToken"
+          onChange={(e) => setOptToken(e.target.value)}
           type="password"
           size='small'
           autoComplete="current-password"
         />
         <TextField
           required
-          ref={roomIdRef}
+          value={roomId}
           id="outlined"
           label="RoomId"
-          defaultValue="123456"
+          onChange={(e) => setRoomId(e.target.value)}
           size='small'
         />
         <Button variant="contained" onClick={handleLogin}>Login</Button>
