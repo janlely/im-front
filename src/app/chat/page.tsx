@@ -1,7 +1,7 @@
 "use client"
 import React, { Suspense } from 'react';
 import Grid from '@mui/material/Grid2';
-import { List, ListItem, Button, Drawer, Stack, Box, Typography, Paper, Avatar, TextField, CircularProgress, Modal } from '@mui/material';
+import { List, ListItem, Button, Drawer, Stack, Box, Typography, Paper, Avatar, TextField, CircularProgress } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
 import OutputIcon from '@mui/icons-material/Output';
 import PhotoIcon from '@mui/icons-material/Photo';
@@ -9,14 +9,16 @@ import {Memeber, MessageDivData, MessageType} from "@/types/message"
 import { styled } from '@mui/material/styles';
 import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 import ReplayIcon from '@mui/icons-material/Replay';
-import Image from 'next/image'
 import axios from 'axios';
 import { generateThumbnail, uploadImages } from '@/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
+import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react'
+import MyImage from '@/components/myimage';
+import { Emoji } from '@/types/message';
 
 
 function Chat() {
-  const [imgOpen, setImgOpen] = React.useState(false);
   const [members, setMembers] = React.useState<Memeber[]>([]);
   const [inputText, setInputText] = React.useState("");
   const connectionInited = React.useRef(false)
@@ -26,11 +28,10 @@ function Chat() {
   const messagesRef = React.useRef<MessageDivData[]>([])
   const [messages, setMessages] = React.useState<MessageDivData[]>([]);
   const [memberListOpen, setMemberListOpen] = React.useState(false);
+  const [emojiShow, setEmojiShow] = React.useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const roomId = searchParams.get("roomId")
-
-  
 
   React.useEffect(() => {
     messagesRef.current = messages
@@ -41,8 +42,12 @@ function Chat() {
     console.log(`message size: ${messages.length}, div size: ${msgBodyRef.current?.childElementCount}`)
   }, [messages, scrollToBottomNeeded])
 
-  const toggleDrawer = () =>  {
+  const toggleMemberList = () =>  {
     setMemberListOpen(!memberListOpen);
+  }
+
+  const toggleEmojiPicker = () =>  {
+    setEmojiShow(!emojiShow);
   }
 
   const memgerList = () => {
@@ -260,16 +265,20 @@ function Chat() {
     }
   }
 
+  const emojiSelected = (emoji: Emoji) => {
+    setInputText(inputText + emoji.native)
+  }
+
   return (
     <Stack spacing={2} sx={{ height: "100vh", width: '100vw' }}>
       {/* header */}
       <Grid container spacing={2} sx={{height: "10vh"}}>
         <Grid size={4}>
-          <Button onClick={toggleDrawer}><GroupIcon /></Button>
+          <Button onClick={toggleMemberList}><GroupIcon /></Button>
           <Drawer
             anchor={"left"}
             open={memberListOpen}
-            onClose={toggleDrawer}
+            onClose={toggleMemberList}
           >
             {memgerList()}
           </Drawer>
@@ -278,7 +287,7 @@ function Chat() {
           {roomId}
         </Grid>
         <Grid size={4} sx={{ textAlign: "right" }}>
-          <Button onClick={() => { window.location.href = "/" }}><OutputIcon /></Button>
+          <Button onClick={() => { router.push("/") }}><OutputIcon /></Button>
         </Grid>
       </Grid>
 
@@ -292,12 +301,11 @@ function Chat() {
                   {!msg.success && (msg.failed ? <Button><ReplayIcon/></Button> : <Button><CircularProgress /></Button>)}
                   {msg.message.type === MessageType.TEXT ?
                     <Typography noWrap>{msg.message.data}</Typography> :
-                    <Box>
-                      <Image alt='' src={JSON.parse(msg.message.data).thumbnail} onClick={() => setImgOpen(!imgOpen)}/>
-                      <Modal open={imgOpen} onClose={() => setImgOpen(!imgOpen)}>
-                        <Image alt='' src={JSON.parse(msg.message.data).url} onClick={() => setImgOpen(!imgOpen)} />
-                      </Modal>
-                    </Box>}
+                    <MyImage
+                      thumbnailUrl={JSON.parse(msg.message.data).thumbnail}
+                      originalUrl={JSON.parse(msg.message.data).url}
+                    />
+                  }
                   <Avatar>{msg.message.sender.substring(0, 3)}</Avatar>
                 </Stack>
               </Item>
@@ -309,12 +317,11 @@ function Chat() {
                   <Avatar>{msg.message.sender.substring(0, 3)}</Avatar>
                   {msg.message.type === MessageType.TEXT ?
                     <Typography noWrap>{msg.message.data}</Typography> :
-                    <Box>
-                      <Image alt='' src={JSON.parse(msg.message.data).thumbnail} onClick={() => setImgOpen(!imgOpen)}/>
-                      <Modal open={imgOpen} onClose={() => setImgOpen(!imgOpen)}>
-                        <Image alt='' src={JSON.parse(msg.message.data).url} onClick={() => setImgOpen(!imgOpen)} />
-                      </Modal>
-                    </Box>}
+                    <MyImage
+                      thumbnailUrl={JSON.parse(msg.message.data).thumbnail}
+                      originalUrl={JSON.parse(msg.message.data).url}
+                    />
+                  }
                 </Stack>
               </Item>
             </Box>
@@ -323,7 +330,12 @@ function Chat() {
       {/* message input */}
       <Grid container spacing={2} sx={{height: '10vh', alignItems: "center", px: "5vw" }}>
         <Grid size={2}>
-          <Button variant="outlined"><InsertEmoticonIcon/></Button>
+          <Button variant="outlined" onClick={toggleEmojiPicker}><InsertEmoticonIcon/></Button>
+          {emojiShow &&
+            <Box sx={{ position: "absolute", zIndex: 2, bottom: '10vh', left: 0, paddingLeft: '5vw' }}>
+              <Picker data={data} onEmojiSelect={emojiSelected} />
+            </Box>
+          }
         </Grid>
         <Grid size={6}>
           <TextField id="outlined-basic" value={inputText} onChange={(e) => {setInputText(e.target.value)}} size='small' sx={{width: "100%"}} />

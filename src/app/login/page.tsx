@@ -27,7 +27,7 @@ export default function Home() {
             alert(`登录失败: ${res.status}`)
         } else {
             if (typeof window != 'undefined') {
-                router.push(`/Chat?roomId=${roomId}`)
+                router.push(`/chat?roomId=${roomId}`)
             }
         }
     }).catch(err => {

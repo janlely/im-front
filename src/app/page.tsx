@@ -11,7 +11,7 @@ export default function Home() {
   const [roomId, setRoomId] = React.useState("");
   React.useEffect(() => {
     setRoomId('123456')
-  }, [roomId])
+  }, [])
   return (
     <Box sx={{
       width: '100vw',
@@ -30,7 +30,7 @@ export default function Home() {
           size='small'
         />
         <Button variant="contained">
-          <Link href={`/chat?roomId=${roomId}`}>Goto</Link>
+          <Link href={`/chat?roomId=${roomId}`} style={{ color: 'white', textDecoration: 'none' }}>Goto</Link>
         </Button>
       </Stack>
     </Box>

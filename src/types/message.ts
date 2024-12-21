@@ -23,3 +23,11 @@ export enum MessageType {
     TEXT,
     IMAGE
 }
+
+export interface Emoji {
+    name: string,
+    native: string,
+    emoji: string,
+    unified: string,
+    shortCodes: string
+}
