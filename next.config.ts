@@ -10,7 +10,7 @@ const withPWA = require("next-pwa")({
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  // output: "export",
+  output: "export",
   images: {
     domains: ['tmpfiles.org', "fars.ee"]
   }

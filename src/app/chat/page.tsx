@@ -31,7 +31,7 @@ function Chat() {
   const [emojiShow, setEmojiShow] = React.useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const roomId = searchParams.get("roomId")
+  const roomId = encodeURIComponent(searchParams.get("roomId")!)
 
   React.useEffect(() => {
     messagesRef.current = messages
@@ -63,7 +63,7 @@ function Chat() {
     backgroundColor: '#afcaa7',
     ...theme.typography.body2,
     padding: theme.spacing(1),
-    textAlign: 'center',
+    textAlign: 'left',
     color: theme.palette.text.secondary,
     maxWidth: '70vw',
     ...theme.applyStyles('dark', {
@@ -270,9 +270,9 @@ function Chat() {
   }
 
   return (
-    <Stack spacing={2} sx={{ height: "100vh", width: '100vw' }}>
+    <Stack spacing={2} sx={{ height: "100vh", width: '100vw', paddingBottom: '2vh'}}>
       {/* header */}
-      <Grid container spacing={2} sx={{height: "10vh"}}>
+      <Grid container spacing={2} sx={{height: "10vh", alignItems: "center"}}>
         <Grid size={4}>
           <Button onClick={toggleMemberList}><GroupIcon /></Button>
           <Drawer
@@ -284,7 +284,7 @@ function Chat() {
           </Drawer>
         </Grid>
         <Grid size={4} sx={{ textAlign: "center", alignContent: "center" }}>
-          {roomId}
+          {decodeURIComponent(roomId)}
         </Grid>
         <Grid size={4} sx={{ textAlign: "right" }}>
           <Button onClick={() => { router.push("/") }}><OutputIcon /></Button>
@@ -300,7 +300,7 @@ function Chat() {
                 <Stack spacing={2} direction="row" sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
                   {!msg.success && (msg.failed ? <Button><ReplayIcon/></Button> : <Button><CircularProgress /></Button>)}
                   {msg.message.type === MessageType.TEXT ?
-                    <Typography noWrap>{msg.message.data}</Typography> :
+                    <Typography variant="body1" gutterBottom>{msg.message.data}</Typography> :
                     <MyImage
                       thumbnailUrl={JSON.parse(msg.message.data).thumbnail}
                       originalUrl={JSON.parse(msg.message.data).url}
@@ -316,7 +316,7 @@ function Chat() {
                 <Stack spacing={2} direction="row" sx={{ alignItems: 'center' }}>
                   <Avatar>{msg.message.sender.substring(0, 3)}</Avatar>
                   {msg.message.type === MessageType.TEXT ?
-                    <Typography noWrap>{msg.message.data}</Typography> :
+                    <Typography variant='body1' gutterBottom>{msg.message.data}</Typography> :
                     <MyImage
                       thumbnailUrl={JSON.parse(msg.message.data).thumbnail}
                       originalUrl={JSON.parse(msg.message.data).url}
@@ -328,19 +328,19 @@ function Chat() {
         ))}
       </Box>
       {/* message input */}
-      <Grid container spacing={2} sx={{height: '10vh', alignItems: "center", px: "5vw" }}>
-        <Grid size={2}>
-          <Button variant="outlined" onClick={toggleEmojiPicker}><InsertEmoticonIcon/></Button>
+      <Stack spacing={2} direction="row" sx={{ alignItems: 'center', justifyContent: 'flex-start', px: '5vw' }}>
+        <Box>
+          <InsertEmoticonIcon onClick={toggleEmojiPicker}/>
           {emojiShow &&
-            <Box sx={{ position: "absolute", zIndex: 2, bottom: '10vh', left: 0, paddingLeft: '5vw' }}>
+            <Box sx={{ position: "absolute", zIndex: 2, bottom: '10vh', left: 0, paddingLeft: '2vw' }}>
               <Picker data={data} onEmojiSelect={emojiSelected} />
             </Box>
           }
-        </Grid>
-        <Grid size={6}>
-          <TextField id="outlined-basic" value={inputText} onChange={(e) => {setInputText(e.target.value)}} size='small' sx={{width: "100%"}} />
-        </Grid>
-        <Grid size={2}>
+        </Box>
+        <Box sx={{width: '70vw'}}>
+          <TextField id="outlined-basic" value={inputText} onChange={(e) => {setInputText(e.target.value)}} size='small' sx={{width: '100%'}} />
+        </Box>
+        <Box>
           <input
             type="file"
             accept="image/*"
@@ -349,13 +349,12 @@ function Chat() {
             onChange={handleImageChange}
             style={{ display: 'none' }} // 隐藏原始input
           />
-          <Button variant="outlined" onClick={() => {fileInputRef.current?.click()}}><PhotoIcon /></Button>
-        </Grid>
-        <Grid size={2} sx={{justifyContent: "", alignItems: "center"}}>
+          <Button variant="outlined" onClick={() => {fileInputRef.current?.click()}}  sx={{ px: '6px', minWidth: '40px'}} ><PhotoIcon /></Button>
+        </Box>
+        <Box>
           <Button variant="contained" onClick={handleSendBtnClick}>发送</Button>
-        </Grid>
-      </Grid>
-
+        </Box>
+      </Stack>
     </Stack>
   );
 }

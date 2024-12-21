@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Nunito } from "next/font/google";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Author, IconDescriptor, ThemeColorDescriptor } from "next/dist/lib/metadata/types/metadata-types";
+import { Author, IconDescriptor } from "next/dist/lib/metadata/types/metadata-types";
 const nunito = Nunito({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -24,12 +24,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff'},
-    { media: '(prefers-color-scheme: dark)', color: '#000000' },
-  ],
   width: 'device-width',
   initialScale: 1,
+  maximumScale: 1,
+  viewportFit: 'cover'
 };
 
 export default function RootLayout({
@@ -45,9 +43,6 @@ export default function RootLayout({
         <meta name="generator" content={metadata.generator as string} />
         <link rel="manifest" href={metadata.manifest as string} />
         <meta name="keywords" content={(metadata.keywords! as string[]).join(", ") as string} />
-        {(viewport.themeColor! as ThemeColorDescriptor[]).map(({ media, color }, index) => (
-          <meta key={index} name="viewport" media={media} content={color} />
-        ))}
         {(metadata.authors! as Author[]).map(({ name, url }, index) => (
           <meta key={index} name="author" content={name} {...(url && { href: url })} />
         ))}

@@ -13,7 +13,7 @@ export default function Home() {
   const [roomId, setRoomId] = React.useState("");
   const router = useRouter();
   React.useEffect(() => {
-    setRoomId('123456')
+    setRoomId('好好学习')
   }, [])
 
   const handleLogin = () => {

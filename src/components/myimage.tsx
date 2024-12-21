@@ -23,10 +23,12 @@ function MyImage(props: MyImageProps) {
                 placeholder='blur'
                 blurDataURL='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII='
                 onClick={() => setImgOpen(!imgOpen)}
+                unoptimized={true}
                 onError={() => setThumbnail("/icons/broken-100x100.png")}
             />
             <Modal open={imgOpen} onClose={() => setImgOpen(!imgOpen)}>
                 <Image
+                    unoptimized={true}
                     fill={true}
                     style={{ objectFit: 'contain' }}
                     alt=''
